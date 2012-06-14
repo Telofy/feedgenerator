@@ -1,0 +1,15 @@
+*.pyc
+*.swp
+bin/
+downloads/*
+!downloads/.keep
+develop-eggs/
+eggs/*
+!eggs/.keep
+parts/
+.installed.cfg
+*.egg-info
+*.orig
+*.mo
+/*.xml
+/*.html

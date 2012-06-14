@@ -1,5 +1,5 @@
 #! /usr/bin/python
-from distutils.core import setup
+from setuptools import setup, find_packages
 
 
 NAME = 'feedgenerator'
@@ -25,13 +25,20 @@ AUTHOR_EMAIL = 'foundation@djangoproject.com'
 MAINTAINER = 'Alexis Metaireau'
 MAINTAINER_EMAIL= 'alexis@notmyidea.org'
 KEYWORDS = "feed atom rss".split(' ')
-VERSION = '1.2.1'
+VERSION = '1.3.0'
 
 setup(
     name=NAME,
     version=VERSION,
     packages=PACKAGES,
-    
+    py_modules=MODULES,
+    include_package_data = True,
+    package_dir = {'': 'feedgenerator'},
+    namespace_packages = ['feedgenerator'],
+    install_requires=[
+        'setuptools',
+    ],
+
     # metadata for upload to PyPI
     author=AUTHOR,
     author_email=AUTHOR_EMAIL,
