@@ -1,6 +1,5 @@
 #! /usr/bin/python
-from setuptools import setup, find_packages
-
+from distutils.core import setup
 
 NAME = 'feedgenerator'
 PACKAGES = ['feedgenerator', 'feedgenerator.utils', 'feedgenerator.contrib',
@@ -31,13 +30,13 @@ setup(
     name=NAME,
     version=VERSION,
     packages=PACKAGES,
-    py_modules=MODULES,
-    include_package_data = True,
-    package_dir = {'': 'feedgenerator'},
-    namespace_packages = ['feedgenerator'],
-    install_requires=[
-        'setuptools',
-    ],
+#    py_modules=MODULES,
+#    include_package_data = True,
+#    package_dir = {'feedgenerator': 'feedgenerator'},
+#    namespace_packages = ['feedgenerator'],
+#    install_requires=[
+#        'setuptools',
+#    ],
 
     # metadata for upload to PyPI
     author=AUTHOR,
