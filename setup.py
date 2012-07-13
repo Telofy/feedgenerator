@@ -5,6 +5,7 @@ setup(
     name='feedgenerator',
     version='1.3.0',
     packages=find_packages('.'),
+    extras_require={'test': ['requests']},
 
     author='Django Software Foundation',
     author_email='foundation@djangoproject.com',

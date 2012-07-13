@@ -1,8 +1,9 @@
+import unittest
 from feedgenerator.contrib.gis.feeds import GeoRSSFeed
 from feedgenerator.contrib.gis.geometry import Geometry
 
 
-class TestGeoRssFeed(object):
+class TestGeoRssFeed(unittest.TestCase):
 
     def _get_encoding(self):
         return 'utf8'
@@ -13,7 +14,7 @@ class TestGeoRssFeed(object):
             'description': u'Updates about releases of the feedgenerator package.',
             'link': u'https://github.com/ametaireau/feedgenerator',
         }
-        
+
     def _get_feed(self, input_kwargs):
         return GeoRSSFeed(**input_kwargs)
 
@@ -29,13 +30,13 @@ class TestGeoRssFeed(object):
         lat, lon = (37.804359, -122.271116)
         # Swap because by default mixing expects these backwards.
         return Geometry('point', (lon, lat))
-    
+
     def test_feed(self):
         input_kwargs = self._get_feed_kwargs()
         feed = self._get_feed(input_kwargs)
         encoding = self._get_encoding()
         title_str = input_kwargs['title'].encode(encoding)
-        assert title_str in feed.writeString(encoding), \
+        assert title_str in feed.write_string(encoding), \
                 "Feed output does not contain feed title."
 
     def test_feed_item(self):
@@ -44,10 +45,10 @@ class TestGeoRssFeed(object):
         item_input_kwargs = self._get_feed_item_kwargs()
         point = self._get_point()
         item_input_kwargs['geometry'] = point
-        feed.add_item(**item_input_kwargs)
+        feed.add_entry(**item_input_kwargs)
         encoding = self._get_encoding()
         title_str = item_input_kwargs['title'].encode(encoding)
-        feed_str = feed.writeString(encoding)
+        feed_str = feed.write_string(encoding)
         assert title_str in feed_str, \
                 "Feed output does not contain feed item title."
         assert str(point.coords[0]) in feed_str, \

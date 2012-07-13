@@ -1,6 +1,35 @@
 import datetime
+import unittest
+import feedgenerator
+from datetime import tzinfo, timedelta
 
-from django.utils import feedgenerator, tzinfo, unittest
+class FixedOffset(tzinfo):
+    "Fixed offset in minutes east from UTC."
+    def __init__(self, offset):
+        if isinstance(offset, timedelta):
+            self.__offset = offset
+            offset = self.__offset.seconds // 60
+        else:
+            self.__offset = timedelta(minutes=offset)
+
+        sign = '-' if offset < 0 else '+'
+        self.__name = "%s%02d%02d" % (sign, abs(offset) / 60., abs(offset) % 60)
+
+    def __repr__(self):
+        return self.__name
+
+    def __getinitargs__(self):
+        return self.__offset,
+
+    def utcoffset(self, dt):
+        return self.__offset
+
+    def tzname(self, dt):
+        return self.__name
+
+    def dst(self, dt):
+        return timedelta(0)
+
 
 class FeedgeneratorTest(unittest.TestCase):
     """
@@ -38,7 +67,7 @@ class FeedgeneratorTest(unittest.TestCase):
         Test rfc2822_date() correctly formats datetime objects with tzinfo.
         """
         self.assertEqual(
-            feedgenerator.rfc2822_date(datetime.datetime(2008, 11, 14, 13, 37, 0, tzinfo=tzinfo.FixedOffset(datetime.timedelta(minutes=60)))),
+            feedgenerator.rfc2822_date(datetime.datetime(2008, 11, 14, 13, 37, 0, tzinfo=FixedOffset(datetime.timedelta(minutes=60)))),
             "Fri, 14 Nov 2008 13:37:00 +0100"
         )
 
@@ -65,7 +94,7 @@ class FeedgeneratorTest(unittest.TestCase):
         Test rfc3339_date() correctly formats datetime objects with tzinfo.
         """
         self.assertEqual(
-            feedgenerator.rfc3339_date(datetime.datetime(2008, 11, 14, 13, 37, 0, tzinfo=tzinfo.FixedOffset(datetime.timedelta(minutes=120)))),
+            feedgenerator.rfc3339_date(datetime.datetime(2008, 11, 14, 13, 37, 0, tzinfo=FixedOffset(datetime.timedelta(minutes=120)))),
             "2008-11-14T13:37:00+02:00"
         )
 
@@ -82,7 +111,7 @@ class FeedgeneratorTest(unittest.TestCase):
         """
         Test to make sure Atom MIME type has UTF8 Charset parameter set
         """
-        atom_feed = feedgenerator.Atom1Feed("title", "link", "description")
+        atom_feed = feedgenerator.Atom1Feed(title=u'title')
         self.assertEqual(
             atom_feed.mime_type, "application/atom+xml; charset=utf-8"
         )
@@ -100,12 +129,12 @@ class FeedgeneratorTest(unittest.TestCase):
 
     def test_feed_without_feed_url_gets_rendered_without_atom_link(self):
         feed = feedgenerator.Rss201rev2Feed('title', '/link/', 'descr')
-        self.assertEqual(feed.feed['feed_url'], None)
-        feed_content = feed.writeString('utf-8')
+        self.assertNotIn('feed_url', feed.meta)
+        feed_content = feed.write_string('utf-8')
         self.assertNotIn('<atom:link href=', feed_content)
 
     def test_feed_with_feed_url_gets_rendered_with_atom_link(self):
         feed = feedgenerator.Rss201rev2Feed('title', '/link/', 'descr', feed_url='/feed/')
-        self.assertEqual(feed.feed['feed_url'], '/feed/')
-        feed_content = feed.writeString('utf-8')
+        self.assertEqual(feed.meta['feed_url'], '/feed/')
+        feed_content = feed.write_string('utf-8')
         self.assertIn('<atom:link href="/feed/" rel="self"></atom:link>', feed_content)

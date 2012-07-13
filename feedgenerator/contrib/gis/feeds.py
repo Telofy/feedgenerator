@@ -101,13 +101,13 @@ class GeoRSSFeed(Rss201rev2Feed, GeoFeedMixin):
         attrs[u'xmlns:georss'] = u'http://www.georss.org/georss'
         return attrs
 
-    def add_item_elements(self, handler, item):
-        super(GeoRSSFeed, self).add_item_elements(handler, item)
+    def add_entry_elements(self, handler, item):
+        super(GeoRSSFeed, self).add_entry_elements(handler, item)
         self.add_georss_element(handler, item)
 
     def add_root_elements(self, handler):
         super(GeoRSSFeed, self).add_root_elements(handler)
-        self.add_georss_element(handler, self.feed)
+        self.add_georss_element(handler, self.meta)
 
 class GeoAtom1Feed(Atom1Feed, GeoFeedMixin):
     def root_attributes(self):
@@ -115,8 +115,8 @@ class GeoAtom1Feed(Atom1Feed, GeoFeedMixin):
         attrs[u'xmlns:georss'] = u'http://www.georss.org/georss'
         return attrs
 
-    def add_item_elements(self, handler, item):
-        super(GeoAtom1Feed, self).add_item_elements(handler, item)
+    def add_entry_elements(self, handler, item):
+        super(GeoAtom1Feed, self).add_entry_elements(handler, item)
         self.add_georss_element(handler, item)
 
     def add_root_elements(self, handler):
@@ -129,8 +129,8 @@ class W3CGeoFeed(Rss201rev2Feed, GeoFeedMixin):
         attrs[u'xmlns:geo'] = u'http://www.w3.org/2003/01/geo/wgs84_pos#'
         return attrs
 
-    def add_item_elements(self, handler, item):
-        super(W3CGeoFeed, self).add_item_elements(handler, item)
+    def add_entry_elements(self, handler, item):
+        super(W3CGeoFeed, self).add_entry_elements(handler, item)
         self.add_georss_element(handler, item, w3c_geo=True)
 
     def add_root_elements(self, handler):

@@ -17,11 +17,6 @@ class DjangoUnicodeDecodeError(UnicodeDecodeError):
         return '%s. You passed in %r (%s)' % (original, self.obj,
                 type(self.obj))
 
-def  iri_to_uri(iri):                                                           
-    if iri is None:                                                            
-        return iri                                                             
-    return urllib.quote(smart_str(iri), safe="/#%[]=:;$&()+,!?*@'~")   
-
 def is_protected_type(obj):
     """Determine if the object instance is of a protected type.
 
