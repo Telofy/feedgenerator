@@ -67,6 +67,9 @@ def rfc3339_date(date):
     else:
         return date.strftime('%Y-%m-%dT%H:%M:%SZ')
 
+def new_random_urn():
+    return unicode(uuid.uuid4().urn)
+
 def get_tag_uri(url, date):
     """
     Creates a TagURI.
@@ -342,8 +345,9 @@ class Atom1Feed(SyndicationFeed):
         title -- a human-readable title
         updated -- datetime of most recent modification
         authors -- list of dicts for authors (optional)
+        author -- convenience shortcut for name of author (optional)
         links -- list of dicts of references to Web resources (optional)
-        link -- convenience shortcut to href of link with rel alternate (optional)
+        link -- convenience shortcut to href of link with rel self (optional)
         categories -- list of dicts for categories (optional)
         contributors -- list of dicts for entities who contributed (optional)
         generator -- agent used to generate a feed (optional)
@@ -353,13 +357,17 @@ class Atom1Feed(SyndicationFeed):
         rights -- rights held in and over an entry or feed (optional)
         """
         assert kwargs.has_key('title')
+        if not kwargs.has_key('id'):
+            kwargs['id'] = new_random_urn()
         if kwargs.has_key('link'):
             # Optimization for frequent use case
             kwargs['links'] = tuple(kwargs.get('links', ()))
             kwargs['links'] += ({'rel': 'self', 'href': kwargs['link']},)
             del kwargs['link']
-        if not kwargs.has_key('id'):
-            kwargs['id'] = uuid.uuid4().urn  # Random URN
+        if kwargs.has_key('author'):
+            kwargs['authors'] = tuple(kwargs.get('authors', ()))
+            kwargs['authors'] += ({'name': kwargs['author']},)
+            del kwargs['author']
         self.meta = kwargs
         self.extend(map(self.prepare_entry, entries))
 
@@ -373,6 +381,7 @@ class Atom1Feed(SyndicationFeed):
         summary --  short summary, abstract, or excerpt (optional)
         content -- contains or links to the content of the entry (optional)
         authors -- list of dicts for authors (optional)
+        author -- convenience shortcut for name of author (optional)
         links -- list of dicts of references to Web resources (optional)
         link -- convenience shortcut to href of link with rel alternate (optional)
         categories -- list of dicts for categories (optional)
@@ -387,16 +396,20 @@ class Atom1Feed(SyndicationFeed):
         assert entry.has_key('title')
         assert entry.has_key('updated')
         if not self.meta.get('authors'):
-            assert entry.get('authors'), (
-                u'If the feed doesn’t have an author, '
+            assert entry.get('authors') or entry.get('author'), (
+                u'If the feed does not have an author, '
                 u'each entry must have one.')
+        if not entry.has_key('id'):
+            entry['id'] = new_random_urn()
+        # Optimizations for frequent use cases
         if entry.has_key('link'):
-            # Optimization for frequent use case
             entry['links'] = tuple(entry.get('links', ()))
             entry['links'] += ({'rel': 'alternate', 'href': entry['link']},)
             del entry['link']
-        if not entry.has_key('id'):
-            entry['id'] = uuid.uuid4().urn  # Random URN
+        if entry.has_key('author'):
+            entry['authors'] = tuple(entry.get('authors', ()))
+            entry['authors'] += ({'name': entry['author']},)
+            del entry['author']
         return entry
 
     def write(self, outfile, encoding='utf-8'):
