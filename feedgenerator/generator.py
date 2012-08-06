@@ -29,6 +29,7 @@ CHANGES:
 """
 
 import datetime
+import json
 import urlparse
 import uuid
 from feedgenerator.utils.xmlutils import SimplerXMLGenerator
@@ -82,11 +83,27 @@ def get_tag_uri(url, date):
         d = ',%s' % datetime_safe.new_datetime(date).strftime('%Y-%m-%d')
     return u'tag:%s%s:%s/%s' % (bits.hostname, d, bits.path, bits.fragment)
 
-def minimized(dictionary):
-    """Removes None entries from (the first level of) a dictionary."""
-    return dict((key, value)
-                for key, value in dictionary.iteritems()
-                if value is not None)
+def _minimized(iterable, empty):
+    if type(iterable) in (list, tuple):
+        return [_minimized(value, empty)
+                for value in iterable
+                if value not in empty]
+    if type(iterable) == dict:
+        return dict((key, _minimized(value, empty))
+                    for key, value in iterable.iteritems()
+                    if value not in empty)
+    return iterable
+
+def minimized(iterable, empty=None):
+    """Recursively removes empty keys from an iterable."""
+    empty = empty or (None, {}, [], ())
+    jsoned = lambda it: json.dumps(it, sort_keys=True, default=unicode)
+    while True:
+        serialized = jsoned(iterable)
+        iterable = _minimized(iterable, empty)
+        if jsoned(iterable) == serialized:
+            break
+    return iterable
 
 def partition(dictionary, keys1, keys2):
     partition1 = dict((key, value)
@@ -207,7 +224,7 @@ class RssFeed(SyndicationFeed):
             'feed_copyright': to_unicode(feed_copyright),
             'id': feed_guid or link,
             'ttl': ttl,
-        })
+        }, empty=(None,))
         self.meta.update(kwargs)
 
     def add_entry(self, title, link, description, author_email=None,
@@ -239,7 +256,7 @@ class RssFeed(SyndicationFeed):
             'categories': categories or (),
             'entry_copyright': to_unicode(entry_copyright),
             'ttl': ttl,
-        })
+        }, empty=(None,))
         entry.update(kwargs)
         self.append(entry)
 
