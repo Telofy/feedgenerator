@@ -356,6 +356,7 @@ class Atom1Feed(SyndicationFeed):
         logo -- an image that provides visual identification (optional)
         rights -- rights held in and over an entry or feed (optional)
         """
+        kwargs = minimized(kwargs)
         assert kwargs.has_key('title')
         if not kwargs.has_key('id'):
             kwargs['id'] = new_random_urn()
@@ -389,6 +390,7 @@ class Atom1Feed(SyndicationFeed):
         rights -- rights held in and over an entry or feed (optional)
         source -- dict of source feed meta data (optional)
         """
+        kwargs = minimized(kwargs)
         entry = self.prepare_entry(kwargs)
         self.append(entry)
 
