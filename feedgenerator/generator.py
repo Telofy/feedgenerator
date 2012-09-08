@@ -519,7 +519,7 @@ class Atom1Feed(SyndicationFeed):
             'categories': self.add_self_closing_elements,
             'contributors': self.add_plain_elements,
             'rights': self.add_text_construct_element,
-            'source': self.add_plain_elements,
+            'source': self.add_nested_element,
         }
         for key, value in entry.iteritems():
             cases[key](handler, self.map_key(key), value)
