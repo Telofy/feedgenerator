@@ -357,6 +357,34 @@ class Atom1Feed(SyndicationFeed):
         logo -- an image that provides visual identification (optional)
         rights -- rights held in and over an entry or feed (optional)
         """
+        self.supported_root_elements = {
+            'id': self.add_element,
+            'title': self.add_element,
+            'updated': self.add_date_element,
+            'authors': self.add_plain_elements,
+            'links': self.add_self_closing_elements,
+            'categories': self.add_self_closing_elements,
+            'contributors': self.add_plain_elements,
+            'generator': self.add_text_construct_element,
+            'subtitle': self.add_element,
+            'icon': self.add_element,
+            'logo': self.add_element,
+            'rights': self.add_text_construct_element,
+        }
+        self.supported_entry_elements = {
+            'id': self.add_element,
+            'title': self.add_element,
+            'updated': self.add_date_element,
+            'published': self.add_date_element,
+            'summary': self.add_text_construct_element,
+            'content': self.add_text_construct_element,
+            'authors': self.add_plain_elements,
+            'links': self.add_self_closing_elements,
+            'categories': self.add_self_closing_elements,
+            'contributors': self.add_plain_elements,
+            'rights': self.add_text_construct_element,
+            'source': self.add_nested_element,
+        }
         kwargs = minimized(kwargs)
         for key in ('summary', 'content'):
             if kwargs.has_key(key) and not kwargs.get(key, {}).get('text'):
@@ -457,8 +485,15 @@ class Atom1Feed(SyndicationFeed):
         elements = elements if elements is not None else {}
         attributes = attributes if attributes is not None else {}
         handler.startElement(key, attributes)
-        for subkey, content in elements.iteritems():
-            handler.addQuickElement(subkey, content)
+        for subkey, value in elements.iteritems():
+            if subkey in self.supported_root_elements:
+                self.supported_root_elements[subkey](
+                    handler, self.map_key(subkey), value)
+            elif subkey in self.supported_entry_elements:
+                self.supported_entry_elements[subkey](
+                    handler, self.map_key(subkey), value)
+            else:
+                handler.addQuickElement(subkey, value)
         handler.endElement(key)
 
     def add_plain_elements(self, handler, key, values):
@@ -478,22 +513,9 @@ class Atom1Feed(SyndicationFeed):
         self.add_element(handler, key, content.isoformat() + 'Z')
 
     def add_root_elements(self, handler):
-        cases = {
-            'id': self.add_element,
-            'title': self.add_element,
-            'updated': self.add_date_element,
-            'authors': self.add_plain_elements,
-            'links': self.add_self_closing_elements,
-            'categories': self.add_self_closing_elements,
-            'contributors': self.add_plain_elements,
-            'generator': self.add_text_construct_element,
-            'subtitle': self.add_element,
-            'icon': self.add_element,
-            'logo': self.add_element,
-            'rights': self.add_text_construct_element,
-        }
         for key, value in self.meta.iteritems():
-            cases[key](handler, self.map_key(key), value)
+            self.supported_root_elements[key](
+                handler, self.map_key(key), value)
         if not 'updated' in self.meta:
             handler.addQuickElement(
                 u'updated',
@@ -507,22 +529,9 @@ class Atom1Feed(SyndicationFeed):
             handler.endElement(u"entry")
 
     def add_entry_elements(self, handler, entry):
-        cases = {
-            'id': self.add_element,
-            'title': self.add_element,
-            'updated': self.add_date_element,
-            'published': self.add_date_element,
-            'summary': self.add_text_construct_element,
-            'content': self.add_text_construct_element,
-            'authors': self.add_plain_elements,
-            'links': self.add_self_closing_elements,
-            'categories': self.add_self_closing_elements,
-            'contributors': self.add_plain_elements,
-            'rights': self.add_text_construct_element,
-            'source': self.add_nested_element,
-        }
         for key, value in entry.iteritems():
-            cases[key](handler, self.map_key(key), value)
+            self.supported_entry_elements[key](
+                handler, self.map_key(key), value)
 
 
 # This isolates the decision of what the system default is, so calling code can
